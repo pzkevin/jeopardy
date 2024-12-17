@@ -1,0 +1,61 @@
+<!-- You don't need to touch this file to complete the assignment! -->
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>Jeopardy!</title>
+
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
+
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.min.css"
+    >
+  </head>
+  <body>
+    <h1>Jeopardy!</h1>
+
+    <button id="play">
+      <!-- When the game ends, update the text. -->
+      Start the Game!
+    </button>
+
+    <section>
+      <table>
+        <thead>
+          <tr id="categories">
+            <!-- For each category, append a th element here. -->
+          </tr>
+        </thead>
+        <tbody>
+          <tr id="clues">
+            <!-- For each category, append a td elements here. -->
+            <!-- For each clue in a category, append a tr element to the corresponding td. -->
+          </tr>
+        </tbody>
+      </table>
+
+      <div id="active-clue">
+        <!-- When a clue is clicked, show the question here. -->
+        <!-- When a question is clicked, show the answer here. -->
+        <!-- When the game ends, show it here. -->
+      </div>
+    </section>
+
+    <div
+        id="spinner"
+        class="disabled"
+    >
+      <i class="fa fa-spin fa-spinner"></i>
+    </div>
+
+    <script src="https://unpkg.com/jquery"></script>
+    <script src="https://unpkg.com/axios/dist/axios.js"></script>
+    <script src="https://unpkg.com/lodash"></script>
+    <script src="jeopardy.js"></script>
+  </body>
+</html>

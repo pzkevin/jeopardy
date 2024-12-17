@@ -1,0 +1,23 @@
+/*
+  You don't need to touch this file to complete the assignment!
+  Unless you want to add styles and make it look more beautiful.
+*/
+
+/*
+  Some colors you may find useful:
+  #115ff4
+  #060ce9
+  #28a200
+  #8d2ab5
+  #74119c
+*/
+
+.disabled
+{
+  display: none;
+}
+
+.viewed
+{
+  text-decoration: line-through;
+}
