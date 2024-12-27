@@ -12,12 +12,46 @@
   #74119c
 */
 
-.disabled
-{
+.disabled {
   display: none;
 }
 
-.viewed
-{
+button {
+  margin: 10px 0;
+  font-size: large;
+}
+
+.viewed {
   text-decoration: line-through;
+  color: red;
+}
+
+.clue-display.clue::before {
+  content: "Clue: ";
+  font-weight: bold;
+  color: green;
+}
+
+.clue-display.answer::before {
+  content: "Answer: ";
+  font-weight: bold;
+  color: blue;
+}
+
+#categories th,
+td {
+  color: rgb(0, 0, 0);
+  border: 1px solid black;
+  padding: 5px 5px;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.viewed {
+  background-color: #d3d3d3;
 }

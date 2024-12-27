@@ -50,7 +50,7 @@ Category: The name given to the structure containing clues on the same topic.
  */
 
 const API_URL = "https://rithm-jeopardy.herokuapp.com/api/"; // The URL of the API.
-const NUMBER_OF_CATEGORIES = 6; // The number of categories you will be fetching. You can change this number.
+const NUMBER_OF_CATEGORIES = 9; // The number of categories you will be fetching. You can change this number.
 const NUMBER_OF_CLUES_PER_CATEGORY = 5; // The number of clues you will be displaying per category. You can change this number.
 
 let categories = []; // The categories with clues fetched from the API.
@@ -72,6 +72,9 @@ let categories = []; // The categories with clues fetched from the API.
   ... more categories
 ]
  */
+
+//for styling purposes only
+const activeClueElement = document.getElementById('active-clue');
 
 let activeClue = null; // Currently selected clue data.
 let activeClueMode = 0; // Controls the flow of #active-clue element while selecting a clue, displaying the question of selected clue, and displaying the answer to the question.
@@ -113,6 +116,7 @@ function handleClickOfPlay() {
 async function setupTheGame() {
   // todo show the spinner while setting up the game
   $("#spinner").removeClass("disabled");
+
   categories = [];
   activeClue = null;
   activeClueMode = 0;
@@ -124,17 +128,17 @@ async function setupTheGame() {
   $("#active-clue").empty();
 
   // todo fetch the game data (categories with clues)
-  let categoriesRes = await axios.get(`https://rithm-jeopardy.herokuapp.com/api/categories?count=${NUMBER_OF_CATEGORIES}`);
-  let clues = categoriesRes.clues;
+  let categoriesRes = await axios.get(`https://rithm-jeopardy.herokuapp.com/api/categories?count=${NUMBER_OF_CATEGORIES}`);//fetches the categories
 
-  //let catmap = categoriesRes.map((category) => ({ catID: category.id, cattitle: category.title }))
+  // /categories returns only the category id, title, and clues_count while /category returns the clues as well as the category id, title, and clues_count
 
   // Fetch data for each category and store in categories array
   for (let category of categoriesRes.data) {
+    let cluesRes = await axios.get(`https://rithm-jeopardy.herokuapp.com/api/category?id=${category.id}`);//fetches the clues for each category
     categories.push({
       id: category.id,
       title: category.title,
-      clues: clues
+      clues: cluesRes.data.clues //clues for each category
     })
     console.log(category)
   }
@@ -142,57 +146,6 @@ async function setupTheGame() {
   // todo fill the table
   fillTable(categories);
   $("#spinner").addClass("disabled");
-}
-
-/**
- * Gets as many category IDs as in the `NUMBER_OF_CATEGORIES` constant.
- * Returns an array of numbers where each number is a category ID.
- *
- * Hints:
- * - Use /categories endpoint of the API.
- * - Request as many categories as possible, such as 100. Randomly pick as many categories as given in the `NUMBER_OF_CATEGORIES` constant, if the number of clues in the category is enough (<= `NUMBER_OF_CLUES` constant).
- */
-async function getCategoryIds() {
-  let res = await axios.get(`https://rithm-jeopardy.herokuapp.com/api/category?id=${catID}`)
-  const ids = []; // todo set after fetching
-
-  // todo fetch NUMBER_OF_CATEGORIES amount of categories
-
-  return ids;
-}
-
-/**
- * Gets category with as many clues as given in the `NUMBER_OF_CLUES` constant.
- * Returns the below data structure:
- *  {
- *    "id": <category ID>
- *    "title": <category name>
- *    "clues": [
- *      {
- *        "id": <clue ID>,
- *        "value": <value of the question>,
- *        "question": <question>,
- *        "answer": <answer to the question>
- *      },
- *      ... more clues
- *    ]
- *  }
- *
- * Hints:
- * - You need to call this function for each category ID returned from the `getCategoryIds` function.
- * - Use /category endpoint of the API.
- * - In the API, not all clues have a value. You can assign your own value or skip that clue.
- */
-async function getCategoryData(categoryId) {
-  const categoryWithClues = {
-    id: categoryId,
-    title: undefined, // todo set after fetching
-    clues: [] // todo set after fetching
-  };
-
-  // todo fetch the category with NUMBER_OF_CLUES_PER_CATEGORY amount of clues
-
-  return categoryWithClues;
 }
 
 /**
@@ -208,7 +161,30 @@ async function getCategoryData(categoryId) {
  * - To this row elements (tr) should add an event listener (handled by the `handleClickOfClue` function) and set their IDs with category and clue IDs. This will enable you to detect which clue is clicked.
  */
 function fillTable(categories) {
-  // todo
+  $("#categories").empty();
+  $("#clues").empty();
+  $("#active-clue").empty();
+  const categoriesRow = document.getElementById('categories');
+  const cluesRow = document.getElementById('clues');
+
+  for (let i = 0; i < categories.length; i++) {//for each category in the categories
+    const th = document.createElement('th');
+    const td = document.createElement('td');
+    th.textContent = categories[i].title;//set the category title
+    categoriesRow.appendChild(th);//append the category to the row
+
+    for (let j = 0; j < categories[i].clues.length; j++) {//for each clue in the category
+      const clueElement = document.createElement('tr');
+      clueElement.classList.add('clue');
+      clueElement.textContent = categories[i].clues[j].value || (j + 1) * 100;//set the value of the clue
+      clueElement.id = `${categories[i].id}-${categories[i].clues[j].id}`;
+      clueElement.addEventListener('click', handleClickOfClue);
+
+      td.appendChild(clueElement); //add the clue to the column
+    }
+
+    cluesRow.appendChild(td);//add the column to the row
+  }
 }
 
 $(".clue").on("click", handleClickOfClue);
@@ -225,9 +201,31 @@ $(".clue").on("click", handleClickOfClue);
  *
  */
 function handleClickOfClue(event) {
-  // todo find and remove the clue from the categories
+  if (activeClueMode !== 0) return;
 
+  if ($(event.target).hasClass("viewed")) {
+    console.warn("This clue has already been viewed 😅");
+    return;
+  }
+  // todo find and remove the clue from the categories
+  const [categoryId, clueId] = event.target.id.split("-").map(Number);//get the id from the clicked element and convert them to numbers with map(Number) because we have it as string in the fillTable function.
+
+  let category = categories.find(category => category.id === categoryId);
+  let clue = category.clues.find(clue => clue.id === clueId);
+  //remove the clue from the category
+  category.clues = category.clues.filter(clue => clue.id !== clueId);
+  //remove the category if all clues are removed
+  if (category.clues.length === 0) {
+    categories = categories.filter(category => category.id !== categoryId);
+  }
+  //console log removed clue
+  console.log(clue);
   // todo mark clue as viewed (you can use the class in style.css), display the question at #active-clue
+  $(event.target).addClass("viewed");
+  $("#active-clue").html(clue.question);//display the question
+  activeClue = clue;
+  activeClueMode = 1;
+  activeClueElement.classList.add('clue');//styling
 }
 
 $("#active-clue").on("click", handleClickOfActiveClue);
@@ -250,10 +248,13 @@ function handleClickOfActiveClue(event) {
 
   if (activeClueMode === 1) {
     activeClueMode = 2;
+    activeClueElement.classList.remove('clue');//styling
+    activeClueElement.classList.add('answer');//styling
     $("#active-clue").html(activeClue.answer);
   }
   else if (activeClueMode === 2) {
     activeClueMode = 0;
+    activeClueElement.classList.remove('answer');//styling
     $("#active-clue").html(null);
 
     if (categories.length === 0) {
@@ -263,3 +264,7 @@ function handleClickOfActiveClue(event) {
     }
   }
 }
+
+//Working Further with the API
+// Before you begin the project, explore the API. What happens when you limit the responses in the first URL? (i.e 'count=5') or if you try to GET a Category which does NOT exist (i.e "id=0").
+//Answer: If I limit it to 5 I get the first 5 categories. If I try to get a category that doesn't exist I get an error (in promise) AxiosError
